@@ -1,0 +1,6 @@
+# robots.txt — Kirenix
+# Разрешаем индексировать весь сайт обоим поисковикам.
+User-agent: *
+Allow: /
+
+Sitemap: https://kirenix.ru/sitemap.xml

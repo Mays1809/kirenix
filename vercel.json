@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/api/supabase/(.*)", "destination": "https://bgidvsfjnpitiosiwjar.supabase.co/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

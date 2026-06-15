@@ -1,0 +1,36 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Служебные/локальные файлы проекта (не нужны в репозитории)
+supabase/.temp/
+fix_trigger.sql
+query.json
+reset_password.cjs
+
+# Платные уроки курса НЕ храним в публичном репозитории (контент — в Supabase
+# под RLS). Локальный бэкап исходников: «важное для проекта/kirenix_course_source».
+# Оставляем только m00_programma.md — публичная витрина, нужна для сборки.
+src/courses/**/*.md
+!src/courses/**/m00_programma.md
