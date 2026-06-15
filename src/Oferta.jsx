@@ -18,7 +18,7 @@ export default function Oferta() {
       <p>
         1.3. Исполнитель оказывает услуги через интернет-платформу Kirenix,
         расположенную по адресу{" "}
-        <strong>https://progressly-kiren-s-projects.vercel.app</strong>.
+        <strong>https://kirenix.ru</strong>.
       </p>
 
       <h2>2. Предмет договора</h2>
