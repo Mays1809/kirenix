@@ -1025,12 +1025,12 @@ export default function Platform({ user, profile, notifications, onProfileUpdate
 
         {/* ════ ОТЗЫВЫ ════ */}
         {page==="reviews" && (
-          <Reviews user={user} profile={profile} onBack={()=>setPage("student")} />
+          <Reviews user={user} profile={profile} isAdmin={adminView} onBack={()=>setPage("student")} />
         )}
 
         {/* ════ РЕФЕРАЛКА ════ */}
         {page==="referral" && (
-          <Referral user={user} profile={profile} onBack={()=>setPage("student")} />
+          <Referral isAdmin={adminView} onBack={()=>setPage("student")} />
         )}
       </div>
 

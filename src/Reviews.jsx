@@ -36,8 +36,7 @@ const STATUS_LABEL = {
   hidden: { t: "Скрыт", c: "#ef4444", I: EyeOff },
 };
 
-export default function Reviews({ user, profile, onBack }) {
-  const isAdmin = profile?.role === "admin";
+export default function Reviews({ user, profile, isAdmin = false, onBack }) {
   const [loading, setLoading] = useState(true);
   const [mine, setMine] = useState(null);
   const [all, setAll] = useState([]);

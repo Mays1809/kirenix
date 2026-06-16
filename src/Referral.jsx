@@ -19,8 +19,7 @@ const card = (extra = {}) => ({
 
 const rub = (n) => `${Math.round(Number(n || 0))} ₽`;
 
-export default function Referral({ user, profile, onBack }) {
-  const isAdmin = profile?.role === "admin";
+export default function Referral({ isAdmin = false, onBack }) {
   const [loading, setLoading] = useState(true);
   const [code, setCode] = useState("");
   const [rows, setRows] = useState([]);
