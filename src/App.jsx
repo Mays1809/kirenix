@@ -15,6 +15,12 @@ import {
   subscribeToNotifications,
 } from "./supabase";
 
+// — захват реферального кода из ссылки ?ref=… (один раз при загрузке) —
+try {
+  const _ref = new URLSearchParams(window.location.search).get("ref");
+  if (_ref) localStorage.setItem("kirenix_ref", _ref.trim().slice(0, 32));
+} catch { /* ignore */ }
+
 export default function App() {
   /* ── Страницы без авторизации ── */
   if (window.location.pathname === "/contacts") {

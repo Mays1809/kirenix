@@ -86,6 +86,26 @@ Deno.serve(async (req) => {
       { user_id: order.user_id, course_slug: order.course_slug, source: "purchase", order_id: order.id },
       { onConflict: "user_id,course_slug" },
     );
+
+    // ── Реферальное начисление: 10% с ПЕРВОЙ успешной покупки приглашённого ──
+    try {
+      const { count: paidCount } = await db.from("course_orders")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", order.user_id).eq("status", "succeeded");
+      if ((paidCount ?? 0) === 1) {                 // эта покупка — первая успешная
+        const { data: prof } = await db.from("profiles")
+          .select("referred_by").eq("id", order.user_id).maybeSingle();
+        if (prof?.referred_by) {
+          const amount = Math.round(Number(order.amount) * 0.10 * 100) / 100;
+          await db.from("referral_commissions").insert({
+            referrer_id: prof.referred_by,
+            referred_user_id: order.user_id,
+            order_id: order.id,
+            amount,
+          });
+        }
+      }
+    } catch (_e) { /* рефералка не должна ломать выдачу доступа */ }
   } else if (payment.status === "canceled" && order.status === "pending") {
     await db.from("course_orders").update({ status: "canceled" }).eq("id", order.id);
   }

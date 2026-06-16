@@ -5,12 +5,13 @@
 //  Props не менялись (cards, onTryFree) — интеграция в Platform прежняя.
 // ═══════════════════════════════════════════════════════════════════
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Play, ChevronRight, Check, ShieldCheck, Clock, FileCheck,
   TrendingUp, Bot, PenLine, Sparkles, GraduationCap, ChevronDown, Star,
 } from "lucide-react";
 import { HeroArt } from "./Illustrations";
+import { supabase } from "./supabase";
 
 const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -63,6 +64,13 @@ function Faq({ q, a }) {
 }
 
 export default function Landing({ cards, onTryFree, onFreeEssay }) {
+  // одобренные отзывы из базы (если есть — показываем их вместо заглушек)
+  const [dbReviews, setDbReviews] = useState([]);
+  useEffect(() => {
+    supabase.from("reviews").select("author_name,rating,body")
+      .eq("status", "approved").order("created_at", { ascending: false }).limit(9)
+      .then(({ data }) => { if (data && data.length) setDbReviews(data); });
+  }, []);
   return (
     <div className="relative text-left isolate">
       {/* живой градиентный фон под стеклом */}
@@ -238,10 +246,17 @@ export default function Landing({ cards, onTryFree, onFreeEssay }) {
           <div className={`${EYEBROW} text-[#e11d48] mb-3`}>Отзывы</div>
           <h2 className="pf-serif text-[27px] mb-4 text-zinc-900 dark:text-zinc-50">Что говорят ученики</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {REVIEWS.map(([ini, who, text], i) => (
+            {(dbReviews.length
+              ? dbReviews.map((r) => ({
+                  ini: (r.author_name || "?").trim().charAt(0).toUpperCase(),
+                  who: r.author_name, text: r.body, rating: r.rating }))
+              : REVIEWS.map(([ini, who, text]) => ({ ini, who, text, rating: 5 }))
+            ).map(({ ini, who, text, rating }, i) => (
               <div key={i} className={`${GLASS} ${LIFT} rounded-3xl p-5`}>
                 <div className="flex gap-0.5 mb-3 text-amber-400">
-                  {[0, 1, 2, 3, 4].map((s) => <Star key={s} size={15} fill="currentColor" strokeWidth={0}/>)}
+                  {[0, 1, 2, 3, 4].map((s) => (
+                    <Star key={s} size={15} fill={s < rating ? "currentColor" : "none"} strokeWidth={s < rating ? 0 : 1.5}/>
+                  ))}
                 </div>
                 <p className="text-[13.5px] leading-relaxed text-zinc-700 dark:text-zinc-300 mb-4">«{text}»</p>
                 <div className="flex items-center gap-2.5">

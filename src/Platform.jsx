@@ -16,6 +16,8 @@ import ScoreTracker from "./ScoreTracker";
 import Support from "./Support";
 import Landing from "./Landing";
 import EssayChecker from "./EssayChecker";
+import Reviews from "./Reviews";
+import Referral from "./Referral";
 import { computeMedal } from "./medal";
 import {
   fetchCourseIndex, checkCourseAccess, startPurchase, clearLessonCache,
@@ -428,7 +430,7 @@ const CoursePage = ({ course, onBack, onMessages, onStudy, user, profile }) => {
    КАБИНЕТ УЧЕНИКА (реальные курсы из Supabase)
    ═══════════════════════════════════════════════════════════════════ */
 
-const StudentCabinet = ({ user, profile, catalog, unread, onCatalog, onStudy, onMedal, onMessages, onExams, onEssays, onScores, onSupport }) => {
+const StudentCabinet = ({ user, profile, catalog, unread, onCatalog, onStudy, onMedal, onMessages, onExams, onEssays, onScores, onSupport, onReviews, onReferral }) => {
   const [myCourses, setMyCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [medal, setMedal] = useState(null);
@@ -569,6 +571,23 @@ const StudentCabinet = ({ user, profile, catalog, unread, onCatalog, onStudy, on
         </button>
       </div>
 
+      <div className="grid grid-cols-2 gap-2.5">
+        <button onClick={onReferral} className={`${glass} ${lift} flex items-center gap-2.5 rounded-2xl px-3.5 py-3 text-left text-zinc-900 dark:text-zinc-100`}>
+          <span className="w-8 h-8 rounded-[9px] shrink-0 flex items-center justify-center text-base bg-rose-500/[0.12]">🎁</span>
+          <span className="min-w-0">
+            <span className="block text-[13px] font-bold">Пригласить друга</span>
+            <span className="block text-[11px] text-zinc-500 dark:text-zinc-400">10% с покупки друга</span>
+          </span>
+        </button>
+        <button onClick={onReviews} className={`${glass} ${lift} flex items-center gap-2.5 rounded-2xl px-3.5 py-3 text-left text-zinc-900 dark:text-zinc-100`}>
+          <span className="w-8 h-8 rounded-[9px] shrink-0 flex items-center justify-center text-base bg-amber-500/[0.12]">⭐</span>
+          <span className="min-w-0">
+            <span className="block text-[13px] font-bold">{author ? "Отзывы" : "Оставить отзыв"}</span>
+            <span className="block text-[11px] text-zinc-500 dark:text-zinc-400">{author ? "на модерацию" : "поделись мнением"}</span>
+          </span>
+        </button>
+      </div>
+
       <div className={`${glass} rounded-2xl overflow-hidden`}>
         <div className="px-4 py-2.5 border-b border-black/5 dark:border-white/10 flex items-center justify-between">
           <span className="text-[13px] font-semibold text-zinc-900 dark:text-zinc-100">Мои курсы</span>
@@ -673,6 +692,15 @@ export default function Platform({ user, profile, notifications, onProfileUpdate
       if (!error) setOwnedSlugs(new Set((data || []).map(a => a.course_slug)));
     });
   }, [user, profile, catalog, studyKey]);
+
+  /* ── Привязка реферала: если в ссылке был ?ref=, закрепляем за пользователем ── */
+  useEffect(() => {
+    if (!user) return;
+    const code = localStorage.getItem("kirenix_ref");
+    if (!code) return;
+    supabase.rpc("claim_referral", { p_code: code })
+      .finally(() => localStorage.removeItem("kirenix_ref"));
+  }, [user]);
 
   /* ── Возврат с оплаты ЮKassa: ждём вебхук и открываем курс ── */
   useEffect(() => {
@@ -959,7 +987,8 @@ export default function Platform({ user, profile, notifications, onProfileUpdate
             onStudy={openStudy} onMedal={()=>setPage("medal")}
             onMessages={()=>setPage("messages")} onExams={()=>setPage("exams")}
             onEssays={()=>setPage("essays")} onScores={()=>setPage("scores")}
-            onSupport={()=>setPage("support")} />
+            onSupport={()=>setPage("support")}
+            onReviews={()=>setPage("reviews")} onReferral={()=>setPage("referral")} />
         )}
 
         {/* ════ МЕДАЛЬНЫЙ ТРЕКЕР ════ */}
@@ -992,6 +1021,16 @@ export default function Platform({ user, profile, notifications, onProfileUpdate
         {/* ════ ПОДДЕРЖКА ════ */}
         {page==="support" && (
           <Support accent="#e11d48" onMessages={()=>setPage("messages")} onBack={()=>setPage("student")} />
+        )}
+
+        {/* ════ ОТЗЫВЫ ════ */}
+        {page==="reviews" && (
+          <Reviews user={user} profile={profile} onBack={()=>setPage("student")} />
+        )}
+
+        {/* ════ РЕФЕРАЛКА ════ */}
+        {page==="referral" && (
+          <Referral user={user} profile={profile} onBack={()=>setPage("student")} />
         )}
       </div>
 
