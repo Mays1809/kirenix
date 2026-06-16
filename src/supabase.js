@@ -18,6 +18,27 @@ const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL  || "https://bgidvsfjnpi
 // в браузере, доступ к данным ограничивает RLS.
 const SUPABASE_KEY  = import.meta.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_LixS-P-ezh8iceSn5lSrfw_baXs94rO";
 
+// Cloudflare-фильтр РКН в РФ иногда рвёт/тормозит соединение к Supabase
+// (ERR_CONNECTION_RESET / 20+ сек). Делаем fetch с таймаутом и авто-повтором —
+// часто проходит со 2–3 попытки (как при ручном повторе), а не висит вечно.
+const fetchWithRetry = async (input, init = {}, attempts = 3) => {
+  let lastErr;
+  for (let i = 0; i < attempts; i++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 20000);
+    try {
+      return await fetch(input, { ...init, signal: init.signal ?? ctrl.signal });
+    } catch (e) {
+      lastErr = e;
+      if (init.signal?.aborted) throw e;            // отмена приложением — не повторяем
+      if (i < attempts - 1) await new Promise((r) => setTimeout(r, 700 * (i + 1)));
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  throw lastErr;
+};
+
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: {
     // Хранить сессию в localStorage — пользователь остаётся залогинен между сессиями
@@ -28,6 +49,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
     // Realtime для чата и уведомлений
     params: { eventsPerSecond: 10 },
   },
+  global: { fetch: fetchWithRetry },
 });
 
 // ═══════════════════════════════════════════════════════════════════
