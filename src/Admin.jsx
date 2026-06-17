@@ -1,13 +1,14 @@
 // ═══════════════════════════════════════════════════════════════════
-//  Admin.jsx — панель владельца: менять цены курсов и выдавать/забирать
-//  доступ по email (для первых учеников / бесплатного доступа за отзыв).
-//  Видна только владельцу (isAdmin). Все действия — через admin-RPC.
+//  Admin.jsx — панель владельца (видна только isAdmin).
+//   • Сводка: ученики, продажи, выручка, отзывы, рефералы
+//   • Цены курсов + скрыть/показать на витрине
+//   • Выдать / забрать доступ по email (любой, в т.ч. купленный — для возвратов)
+//  Всё через admin-RPC с проверкой is_admin().
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, Loader2, Save, Gift, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Gift, Trash2, Eye, EyeOff } from "lucide-react";
 import { supabase } from "./supabase";
-import { fetchCatalog } from "./courses/courseApi";
 
 const card = (e = {}) => ({
   background: "var(--color-background-primary)",
@@ -21,12 +22,14 @@ const input = {
   border: "0.5px solid var(--color-border-secondary)",
   background: "var(--color-background-primary)", color: "var(--color-text-primary)",
 };
+const rub = (n) => `${Math.round(Number(n || 0)).toLocaleString()} ₽`;
 
 export default function Admin({ isAdmin = false, onBack }) {
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState([]);
   const [prices, setPrices] = useState({});      // slug -> { price, original }
   const [access, setAccess] = useState([]);
+  const [summary, setSummary] = useState(null);
   const [email, setEmail] = useState("");
   const [grantSlug, setGrantSlug] = useState("");
   const [savingSlug, setSavingSlug] = useState("");
@@ -36,16 +39,22 @@ export default function Admin({ isAdmin = false, onBack }) {
 
   const load = async () => {
     setLoading(true);
-    try {
-      const cat = await fetchCatalog();
-      setCourses(cat);
-      const p = {};
-      cat.forEach((c) => { p[c.id] = { price: c.price ?? "", original: c.original_price ?? "" }; });
-      setPrices(p);
-      setGrantSlug((s) => s || (cat[0]?.id ?? ""));
-    } catch { /* ignore */ }
-    const { data } = await supabase.rpc("admin_list_access");
-    setAccess(data || []);
+    const { data: cat } = await supabase.rpc("admin_list_courses");
+    const list = (cat || []).map((c) => ({
+      id: c.slug, title: c.title, price: c.price,
+      original_price: c.original_price, is_published: c.is_published,
+    }));
+    setCourses(list);
+    const p = {};
+    list.forEach((c) => { p[c.id] = { price: c.price ?? "", original: c.original_price ?? "" }; });
+    setPrices(p);
+    setGrantSlug((s) => s || (list[0]?.id ?? ""));
+    const [{ data: acc }, { data: sum }] = await Promise.all([
+      supabase.rpc("admin_list_access"),
+      supabase.rpc("admin_summary"),
+    ]);
+    setAccess(acc || []);
+    setSummary(sum || null);
     setLoading(false);
   };
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
@@ -66,6 +75,12 @@ export default function Admin({ isAdmin = false, onBack }) {
     if (!error) load();
   };
 
+  const togglePublish = async (slug, current) => {
+    await supabase.rpc("admin_set_published", { p_slug: slug, p_published: !current });
+    flash(current ? "Курс скрыт с витрины" : "Курс снова на витрине");
+    load();
+  };
+
   const grant = async () => {
     if (!email.trim() || !grantSlug) return;
     const { data, error } = await supabase.rpc("admin_grant_access", {
@@ -80,14 +95,25 @@ export default function Admin({ isAdmin = false, onBack }) {
     if (data === "granted") { setEmail(""); load(); }
   };
 
-  const revoke = async (em, slug) => {
+  const revoke = async (em, slug, source) => {
+    if (source !== "manual" &&
+        !window.confirm(`Убрать доступ у ${em}? Это для возврата — деньги автоматически НЕ вернутся, пропадёт только доступ к курсу.`))
+      return;
     await supabase.rpc("admin_revoke_access", { p_email: em, p_slug: slug });
+    flash("Доступ снят");
     load();
   };
 
   const titleOf = (slug) => courses.find((c) => c.id === slug)?.title || slug;
 
   if (!isAdmin) return null;
+
+  const stat = (label, value, color) => (
+    <div style={{ ...card(), padding: "12px 14px", flex: "1 1 120px", minWidth: 120 }}>
+      <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 20, fontWeight: 800, color: color || "var(--color-text-primary)" }}>{value}</div>
+    </div>
+  );
 
   return (
     <div>
@@ -111,42 +137,64 @@ export default function Admin({ isAdmin = false, onBack }) {
         </div>
       ) : (
         <>
-          {/* ── Цены ── */}
+          {/* ── Сводка ── */}
+          {summary && (
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
+              {stat("Учеников", summary.students ?? 0)}
+              {stat("Продаж", summary.sales ?? 0)}
+              {stat("Выручка", rub(summary.revenue), "#10b981")}
+              {stat("Отзывов на модерации", summary.pending_reviews ?? 0, (summary.pending_reviews > 0) ? "#f59e0b" : undefined)}
+              {stat("Рефералам к выплате", rub(summary.referral_due), (summary.referral_due > 0) ? "#e11d48" : undefined)}
+            </div>
+          )}
+
+          {/* ── Цены и видимость ── */}
           <div style={{ ...card(), padding: 16, marginBottom: 14 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Цены курсов</div>
+            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Курсы: цены и витрина</div>
             {courses.map((c) => {
               const pr = prices[c.id] || {};
               return (
-                <div key={c.id} style={{ display: "flex", gap: 10, alignItems: "center",
-                  flexWrap: "wrap", padding: "8px 0", borderTop: "0.5px solid var(--color-border-tertiary)" }}>
-                  <div style={{ flex: 1, minWidth: 140, fontSize: 13, fontWeight: 600 }}>{c.title}</div>
+                <div key={c.id} style={{ display: "flex", gap: 10, alignItems: "flex-end",
+                  flexWrap: "wrap", padding: "10px 0", borderTop: "0.5px solid var(--color-border-tertiary)" }}>
+                  <div style={{ flex: 1, minWidth: 130 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>{c.title}</div>
+                    {!c.is_published && <div style={{ fontSize: 10.5, color: "#ef4444", marginTop: 2 }}>скрыт с витрины</div>}
+                  </div>
                   <label style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>
                     цена
                     <input type="number" value={pr.price ?? ""} min="0"
                       onChange={(e) => setP(c.id, "price", e.target.value)}
-                      style={{ ...input, display: "block", width: 100, marginTop: 3 }}/>
+                      style={{ ...input, display: "block", width: 96, marginTop: 3 }}/>
                   </label>
                   <label style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>
                     старая (зачёрк.)
                     <input type="number" value={pr.original ?? ""} min="0" placeholder="—"
                       onChange={(e) => setP(c.id, "original", e.target.value)}
-                      style={{ ...input, display: "block", width: 100, marginTop: 3 }}/>
+                      style={{ ...input, display: "block", width: 96, marginTop: 3 }}/>
                   </label>
                   <button onClick={() => savePrice(c.id)} disabled={savingSlug === c.id}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 14px",
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 13px",
                       borderRadius: 9, border: "none", cursor: "pointer",
                       background: "linear-gradient(135deg,#e11d48,#f59e0b)", color: "#fff",
-                      fontSize: 12.5, fontWeight: 700, alignSelf: "flex-end" }}>
+                      fontSize: 12.5, fontWeight: 700 }}>
                     {savingSlug === c.id
                       ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }}/>
                       : <Save size={14}/>} Сохранить
+                  </button>
+                  <button onClick={() => togglePublish(c.id, c.is_published)} title={c.is_published ? "Скрыть с витрины" : "Показать на витрине"}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 12px",
+                      borderRadius: 9, cursor: "pointer", fontSize: 12.5, fontWeight: 600,
+                      border: "0.5px solid var(--color-border-secondary)",
+                      background: "var(--color-background-primary)", color: "var(--color-text-secondary)" }}>
+                    {c.is_published ? <><EyeOff size={14}/> Скрыть</> : <><Eye size={14}/> Показать</>}
                   </button>
                 </div>
               );
             })}
             <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 10 }}>
-              Новая цена сразу действует и на витрине, и при оплате. «Старая» — это перечёркнутая
-              цена рядом со скидкой (оставь пустой, если не нужна).
+              Новая цена действует сразу и на витрине, и при оплате. «Старая» — перечёркнутая цена со
+              скидкой (пусто — без неё). Цена 0 ₽ = курс бесплатный для всех; «Скрыть» убирает курс
+              с витрины, не удаляя.
             </div>
           </div>
 
@@ -161,8 +209,7 @@ export default function Admin({ isAdmin = false, onBack }) {
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end" }}>
               <input value={email} onChange={(e) => setEmail(e.target.value)} type="email"
-                placeholder="email ученика"
-                style={{ ...input, flex: 1, minWidth: 180 }}/>
+                placeholder="email ученика" style={{ ...input, flex: 1, minWidth: 180 }}/>
               <select value={grantSlug} onChange={(e) => setGrantSlug(e.target.value)} style={input}>
                 {courses.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
               </select>
@@ -175,9 +222,7 @@ export default function Admin({ isAdmin = false, onBack }) {
 
           {/* ── Кто имеет доступ ── */}
           <div style={{ ...card(), padding: 16 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>
-              Доступы — {access.length}
-            </div>
+            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Доступы — {access.length}</div>
             {access.length === 0 && (
               <div style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>Пока никто.</div>
             )}
@@ -187,17 +232,15 @@ export default function Admin({ isAdmin = false, onBack }) {
                 <span style={{ flex: 1, minWidth: 0, wordBreak: "break-all" }}>{a.email}</span>
                 <span style={{ color: "var(--color-text-secondary)" }}>{titleOf(a.course_slug)}</span>
                 <span style={{ fontSize: 10.5, fontWeight: 700, padding: "2px 7px", borderRadius: 6,
-                  background: a.source === "manual" ? "#6366f120" : "#10b98120",
-                  color: a.source === "manual" ? "#6366f1" : "#10b981" }}>
-                  {a.source === "manual" ? "выдан" : "куплен"}
+                  background: a.source === "manual" ? "#6366f120" : a.source === "free" ? "#f59e0b20" : "#10b98120",
+                  color: a.source === "manual" ? "#6366f1" : a.source === "free" ? "#f59e0b" : "#10b981" }}>
+                  {a.source === "manual" ? "выдан" : a.source === "free" ? "бесплатно" : "куплен"}
                 </span>
-                {a.source === "manual" && (
-                  <button onClick={() => revoke(a.email, a.course_slug)} title="Забрать доступ"
-                    style={{ background: "none", border: "none", cursor: "pointer",
-                      color: "#ef4444", display: "flex", padding: 3 }}>
-                    <Trash2 size={15}/>
-                  </button>
-                )}
+                <button onClick={() => revoke(a.email, a.course_slug, a.source)} title="Забрать доступ"
+                  style={{ background: "none", border: "none", cursor: "pointer",
+                    color: "#ef4444", display: "flex", padding: 3 }}>
+                  <Trash2 size={15}/>
+                </button>
               </div>
             ))}
           </div>
