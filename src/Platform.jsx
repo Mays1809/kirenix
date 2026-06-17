@@ -18,6 +18,7 @@ import Landing from "./Landing";
 import EssayChecker from "./EssayChecker";
 import Reviews from "./Reviews";
 import Referral from "./Referral";
+import Admin from "./Admin";
 import { computeMedal } from "./medal";
 import {
   fetchCourseIndex, checkCourseAccess, startPurchase, clearLessonCache,
@@ -430,7 +431,7 @@ const CoursePage = ({ course, onBack, onMessages, onStudy, user, profile }) => {
    КАБИНЕТ УЧЕНИКА (реальные курсы из Supabase)
    ═══════════════════════════════════════════════════════════════════ */
 
-const StudentCabinet = ({ user, profile, catalog, unread, onCatalog, onStudy, onMedal, onMessages, onExams, onEssays, onScores, onSupport, onReviews, onReferral }) => {
+const StudentCabinet = ({ user, profile, catalog, unread, onCatalog, onStudy, onMedal, onMessages, onExams, onEssays, onScores, onSupport, onReviews, onReferral, onAdmin }) => {
   const [myCourses, setMyCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [medal, setMedal] = useState(null);
@@ -553,6 +554,17 @@ const StudentCabinet = ({ user, profile, catalog, unread, onCatalog, onStudy, on
         )}
         <ChevronRight size={16} className="text-zinc-400"/>
       </button>
+
+      {author && (
+        <button onClick={onAdmin} className={`${glass} ${lift} w-full flex items-center gap-2.5 rounded-2xl px-3.5 py-3 text-left text-zinc-900 dark:text-zinc-100 border-l-[3px] border-l-indigo-500`}>
+          <span className="text-lg">⚙️</span>
+          <span className="flex-1 min-w-0">
+            <span className="block text-[13.5px] font-bold">Управление</span>
+            <span className="block text-[11.5px] text-zinc-500 dark:text-zinc-400">Цены курсов и выдача доступа</span>
+          </span>
+          <ChevronRight size={16} className="text-zinc-400"/>
+        </button>
+      )}
 
       <div className="grid grid-cols-2 gap-2.5">
         <button onClick={onScores} className={`${glass} ${lift} flex items-center gap-2.5 rounded-2xl px-3.5 py-3 text-left text-zinc-900 dark:text-zinc-100`}>
@@ -988,7 +1000,8 @@ export default function Platform({ user, profile, notifications, onProfileUpdate
             onMessages={()=>setPage("messages")} onExams={()=>setPage("exams")}
             onEssays={()=>setPage("essays")} onScores={()=>setPage("scores")}
             onSupport={()=>setPage("support")}
-            onReviews={()=>setPage("reviews")} onReferral={()=>setPage("referral")} />
+            onReviews={()=>setPage("reviews")} onReferral={()=>setPage("referral")}
+            onAdmin={()=>setPage("admin")} />
         )}
 
         {/* ════ МЕДАЛЬНЫЙ ТРЕКЕР ════ */}
@@ -1031,6 +1044,11 @@ export default function Platform({ user, profile, notifications, onProfileUpdate
         {/* ════ РЕФЕРАЛКА ════ */}
         {page==="referral" && (
           <Referral isAdmin={adminView} onBack={()=>setPage("student")} />
+        )}
+
+        {/* ════ УПРАВЛЕНИЕ (владелец) ════ */}
+        {page==="admin" && (
+          <Admin isAdmin={adminView} onBack={()=>setPage("student")} />
         )}
       </div>
 
