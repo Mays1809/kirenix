@@ -72,9 +72,9 @@ export async function checkCourseAccess(slug) {
 }
 
 /** Старт покупки: создаёт платёж ЮKassa, возвращает { url } для redirect */
-export async function startPurchase(slug) {
+export async function startPurchase(slug, promo) {
   const { data, error } = await supabase.functions.invoke("create-payment", {
-    body: { course_slug: slug },
+    body: { course_slug: slug, promo_code: promo || undefined },
   });
   if (error) {
     // у supabase-js текст ошибки функции лежит в context

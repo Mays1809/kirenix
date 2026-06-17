@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "method not allowed" }, 405);
 
   try {
-    const { course_slug } = await req.json();
+    const { course_slug, promo_code } = await req.json();
     if (!course_slug) return json({ error: "Неизвестный курс" }, 400);
 
     // Пользователь из JWT
@@ -92,9 +92,23 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (existing) return json({ already: true });
 
-    // ── Бесплатный курс (цена 0): выдаём доступ сразу, ЮKassa не зовём ──
-    // (ЮKassa не принимает платёж 0 ₽ — поэтому это отдельная ветка)
-    if (Number(course.amount) <= 0) {
+    // ── Промокод (необязательно): скидка percent% ──
+    let amountNum = Number(course.amount);
+    const promoRaw = (promo_code ?? "").toString().trim().toUpperCase();
+    if (promoRaw) {
+      const { data: promo } = await admin.from("promo_codes")
+        .select("*").eq("code", promoRaw).maybeSingle();
+      const valid = promo && promo.active
+        && (!promo.expires_at || new Date(promo.expires_at) > new Date())
+        && (promo.max_uses == null || promo.used < promo.max_uses);
+      if (!valid) return json({ error: "Промокод недействителен или истёк" }, 400);
+      amountNum = Math.round(amountNum * (100 - promo.percent)) / 100;
+      await admin.from("promo_codes").update({ used: (promo.used ?? 0) + 1 }).eq("id", promo.id);
+    }
+    const amount = amountNum.toFixed(2);
+
+    // ── Бесплатно (0 ₽ или скидка в ноль): выдаём доступ сразу, ЮKassa не зовём ──
+    if (amountNum <= 0) {
       await admin.from("course_access").upsert(
         { user_id: user.id, course_slug, source: "free" },
         { onConflict: "user_id,course_slug" },
@@ -105,7 +119,7 @@ Deno.serve(async (req) => {
     // Заказ
     const { data: order, error: orderErr } = await admin
       .from("course_orders")
-      .insert({ user_id: user.id, course_slug, amount: course.amount })
+      .insert({ user_id: user.id, course_slug, amount })
       .select()
       .single();
     if (orderErr) return json({ error: orderErr.message }, 500);
@@ -124,7 +138,7 @@ Deno.serve(async (req) => {
         Authorization: "Basic " + btoa(`${shopId}:${secret}`),
       },
       body: JSON.stringify({
-        amount: { value: course.amount, currency: "RUB" },
+        amount: { value: amount, currency: "RUB" },
         capture: true,
         confirmation: { type: "redirect", return_url: `${siteUrl}/?payment=pending` },
         description: course.title,

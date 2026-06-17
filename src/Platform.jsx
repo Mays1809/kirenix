@@ -22,7 +22,7 @@ import Admin from "./Admin";
 import { computeMedal } from "./medal";
 import {
   fetchCourseIndex, checkCourseAccess, startPurchase, clearLessonCache,
-  fetchCatalog,
+  fetchCatalog, getAppSetting,
 } from "./courses/courseApi";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -119,13 +119,14 @@ const Badge = ({ children, color = "#6366f1" }) => (
 
 const BuyCourseButton = ({ course, user, onAccess }) => {
   const [loading, setLoading] = useState(false);
+  const [promo, setPromo] = useState("");
 
   const handleBuy = async () => {
     if (!user) { alert("Войдите в аккаунт, чтобы купить курс."); return; }
     setLoading(true);
     try {
       // Платёж создаёт сервер (Edge Function) — цена тоже задана на сервере
-      const res = await startPurchase(getContentId(course));
+      const res = await startPurchase(getContentId(course), promo);
       if (res?.url) { window.location.href = res.url; return; }
       if (res?.already || res?.free) {
         clearLessonCache();
@@ -139,20 +140,21 @@ const BuyCourseButton = ({ course, user, onAccess }) => {
   };
 
   return (
-    <button
-      onClick={handleBuy}
-      disabled={loading}
-      style={{
-        ...gradBtn(loading),
-        flex: 1,
-        maxWidth: 240,
-      }}
-    >
-      {loading
-        ? <Loader2 size={15} style={{ animation:"spin 1s linear infinite" }} />
-        : <ShoppingCart size={15} />}
-      {course.price > 0 ? `Купить за ${course.price.toLocaleString()} ₽` : "Получить бесплатно"}
-    </button>
+    <div style={{ flex: 1, maxWidth: 260, display: "flex", flexDirection: "column", gap: 7 }}>
+      <button onClick={handleBuy} disabled={loading} style={{ ...gradBtn(loading), width: "100%" }}>
+        {loading
+          ? <Loader2 size={15} style={{ animation:"spin 1s linear infinite" }} />
+          : <ShoppingCart size={15} />}
+        {course.price > 0 ? `Купить за ${course.price.toLocaleString()} ₽` : "Получить бесплатно"}
+      </button>
+      {course.price > 0 && (
+        <input value={promo} onChange={(e) => setPromo(e.target.value.toUpperCase())}
+          placeholder="Промокод (если есть)"
+          style={{ padding: "8px 10px", fontSize: 12.5, borderRadius: 8, textTransform: "uppercase",
+            border: "0.5px solid var(--color-border-secondary)",
+            background: "var(--color-background-primary)", color: "var(--color-text-primary)" }}/>
+      )}
+    </div>
   );
 };
 
@@ -437,6 +439,7 @@ const StudentCabinet = ({ user, profile, catalog, unread, onCatalog, onStudy, on
   const [loading, setLoading] = useState(true);
   const [medal, setMedal] = useState(null);
   const [pendingEssays, setPendingEssays] = useState(0);
+  const [announce, setAnnounce] = useState("");
   const author = isOwner(user, profile);
   const glass = "backdrop-blur-xl bg-white/65 dark:bg-zinc-900/55 ring-1 ring-black/[0.04] dark:ring-white/10 shadow-[0_14px_40px_-14px_rgba(20,20,45,0.22)]";
   const lift = "transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_-16px_rgba(20,20,45,0.28)]";
@@ -460,6 +463,10 @@ const StudentCabinet = ({ user, profile, catalog, unread, onCatalog, onStudy, on
       .then(({ count }) => setPendingEssays(count || 0))
       .catch(() => {});
   }, [author]);
+
+  useEffect(() => {
+    getAppSetting("announcement", "").then((v) => setAnnounce(v ? String(v) : ""));
+  }, []);
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
@@ -486,6 +493,12 @@ const StudentCabinet = ({ user, profile, catalog, unread, onCatalog, onStudy, on
 
   return (
     <div className="flex flex-col gap-3 rounded-3xl bg-gradient-to-b from-[#e11d48]/[0.05] via-transparent to-[#6366f1]/[0.05]">
+      {announce && (
+        <div className="rounded-2xl px-4 py-3 text-[13px] font-medium text-amber-900 dark:text-amber-100 bg-amber-400/20 ring-1 ring-amber-500/30 flex items-start gap-2.5">
+          <span className="text-base leading-none">📢</span>
+          <span className="flex-1 whitespace-pre-wrap">{announce}</span>
+        </div>
+      )}
       <div className={`${glass} rounded-3xl p-[18px]`}>
         <div className="flex items-center gap-3 mb-4">
           <div className="w-[50px] h-[50px] rounded-full shrink-0 flex items-center justify-center text-white text-lg font-bold

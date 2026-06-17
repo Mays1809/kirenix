@@ -163,11 +163,12 @@ export default function CourseStudy({ contentId, user, price, onBack }) {
   const openLesson = (id) => { setView(id); window.scrollTo({ top: 0 }); };
 
   /* ── Покупка ── */
+  const [promo, setPromo] = useState("");
   const handleBuy = async () => {
     if (!user) { alert("Войдите в аккаунт, чтобы купить курс."); return; }
     setBuying(true);
     try {
-      const res = await startPurchase(contentId);
+      const res = await startPurchase(contentId, promo);
       if (res?.url) { window.location.href = res.url; return; }
       if (res?.already || res?.free) {
         clearLessonCache();
@@ -182,20 +183,29 @@ export default function CourseStudy({ contentId, user, price, onBack }) {
   };
 
   const BuyBtn = ({ full = false }) => (
-    <button onClick={handleBuy} disabled={buying} style={{
-      display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-      padding: "11px 20px", borderRadius: "var(--border-radius-md)", border: "none",
-      background: buying ? "var(--color-border-secondary)"
-        : "linear-gradient(135deg,#f59e0b,#f97316)",
-      boxShadow: buying ? "none" : "0 4px 14px rgba(249,115,22,.35)",
-      color: "#fff", fontSize: 13, fontWeight: 600,
-      cursor: buying ? "wait" : "pointer", width: full ? "100%" : undefined,
-    }}>
-      {buying
-        ? <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }}/>
-        : <ShoppingCart size={15}/>}
-      {Number(price) === 0 ? "Получить бесплатно" : `Купить курс за ${(price ?? 5200).toLocaleString()} ₽`}
-    </button>
+    <div style={{ display: "flex", flexDirection: "column", gap: 7, width: full ? "100%" : undefined }}>
+      <button onClick={handleBuy} disabled={buying} style={{
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+        padding: "11px 20px", borderRadius: "var(--border-radius-md)", border: "none",
+        background: buying ? "var(--color-border-secondary)"
+          : "linear-gradient(135deg,#f59e0b,#f97316)",
+        boxShadow: buying ? "none" : "0 4px 14px rgba(249,115,22,.35)",
+        color: "#fff", fontSize: 13, fontWeight: 600,
+        cursor: buying ? "wait" : "pointer", width: full ? "100%" : undefined,
+      }}>
+        {buying
+          ? <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }}/>
+          : <ShoppingCart size={15}/>}
+        {Number(price) === 0 ? "Получить бесплатно" : `Купить курс за ${(price ?? 5200).toLocaleString()} ₽`}
+      </button>
+      {Number(price) !== 0 && (
+        <input value={promo} onChange={(e) => setPromo(e.target.value.toUpperCase())}
+          placeholder="Промокод (если есть)"
+          style={{ padding: "8px 10px", fontSize: 12, borderRadius: 8, textTransform: "uppercase",
+            border: "0.5px solid var(--color-border-secondary)",
+            background: "var(--color-background-primary)", color: "var(--color-text-primary)" }}/>
+      )}
+    </div>
   );
 
   if (loadErr) {
