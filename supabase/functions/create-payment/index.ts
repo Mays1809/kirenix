@@ -92,6 +92,16 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (existing) return json({ already: true });
 
+    // ── Бесплатный курс (цена 0): выдаём доступ сразу, ЮKassa не зовём ──
+    // (ЮKassa не принимает платёж 0 ₽ — поэтому это отдельная ветка)
+    if (Number(course.amount) <= 0) {
+      await admin.from("course_access").upsert(
+        { user_id: user.id, course_slug, source: "free" },
+        { onConflict: "user_id,course_slug" },
+      );
+      return json({ free: true });
+    }
+
     // Заказ
     const { data: order, error: orderErr } = await admin
       .from("course_orders")

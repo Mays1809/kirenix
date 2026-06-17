@@ -127,8 +127,9 @@ const BuyCourseButton = ({ course, user, onAccess }) => {
       // Платёж создаёт сервер (Edge Function) — цена тоже задана на сервере
       const res = await startPurchase(getContentId(course));
       if (res?.url) { window.location.href = res.url; return; }
-      if (res?.already) {
+      if (res?.already || res?.free) {
         clearLessonCache();
+        if (res?.free) alert("Курс открыт бесплатно — приятной учёбы 🎉");
         if (onAccess) onAccess();
       }
     } catch (e) {
@@ -150,7 +151,7 @@ const BuyCourseButton = ({ course, user, onAccess }) => {
       {loading
         ? <Loader2 size={15} style={{ animation:"spin 1s linear infinite" }} />
         : <ShoppingCart size={15} />}
-      {`Купить за ${course.price.toLocaleString()} ₽`}
+      {course.price > 0 ? `Купить за ${course.price.toLocaleString()} ₽` : "Получить бесплатно"}
     </button>
   );
 };

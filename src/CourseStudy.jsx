@@ -169,9 +169,10 @@ export default function CourseStudy({ contentId, user, price, onBack }) {
     try {
       const res = await startPurchase(contentId);
       if (res?.url) { window.location.href = res.url; return; }
-      if (res?.already) {
+      if (res?.already || res?.free) {
         clearLessonCache();
         setAccess(true);
+        if (res?.free) alert("Курс открыт бесплатно — приятной учёбы 🎉");
         if (lesson) { setBody(undefined); fetchLessonBody(lesson.id).then(setBody); }
       }
     } catch (e) {
@@ -193,7 +194,7 @@ export default function CourseStudy({ contentId, user, price, onBack }) {
       {buying
         ? <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }}/>
         : <ShoppingCart size={15}/>}
-      Купить курс за {(price ?? 5200).toLocaleString()} ₽
+      {Number(price) === 0 ? "Получить бесплатно" : `Купить курс за ${(price ?? 5200).toLocaleString()} ₽`}
     </button>
   );
 
