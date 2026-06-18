@@ -13,7 +13,9 @@
 
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL  || "https://bgidvsfjnpitiosiwjar.supabase.co";
+// Браузер ходит в Supabase через прокси на Deno Deploy — обход блокировки
+// Cloudflare в РФ. Прямой адрес (если прокси не нужен): https://bgidvsfjnpitiosiwjar.supabase.co
+const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL  || "https://tense-buzzard-8059.kirenix.deno.net";
 // Publishable-ключ (новая система ключей Supabase). Публичный — безопасен
 // в браузере, доступ к данным ограничивает RLS.
 const SUPABASE_KEY  = import.meta.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_LixS-P-ezh8iceSn5lSrfw_baXs94rO";
