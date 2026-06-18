@@ -8,7 +8,7 @@
 import { useEffect, useState } from "react";
 import {
   ArrowLeft, Loader2, Save, Gift, Trash2, Eye, EyeOff,
-  Tag, Megaphone, Download, ChevronDown, ChevronRight,
+  Tag, Megaphone, Download, ChevronDown, ChevronRight, Lock,
 } from "lucide-react";
 import { supabase } from "./supabase";
 
@@ -47,6 +47,7 @@ export default function Admin({ isAdmin = false, onBack }) {
   const [openLessons, setOpenLessons] = useState(null);
   const [lessons, setLessons] = useState([]);
   const [promoForm, setPromoForm] = useState({ code: "", percent: 50, max: "", expires: "" });
+  const [newPass, setNewPass] = useState("");
   const [msg, setMsg] = useState("");
 
   const flash = (t) => { setMsg(t); setTimeout(() => setMsg(""), 3500); };
@@ -150,6 +151,13 @@ export default function Admin({ isAdmin = false, onBack }) {
     a.download = "kirenix_emails.txt"; a.click();
     URL.revokeObjectURL(a.href);
     flash(`Выгружено email: ${(data || []).length}`);
+  };
+
+  const changePass = async () => {
+    if (newPass.length < 8) return flash("Пароль — минимум 8 символов");
+    const { error } = await supabase.auth.updateUser({ password: newPass });
+    flash(error ? "Ошибка: " + error.message : "Пароль изменён ✓");
+    if (!error) setNewPass("");
   };
 
   const titleOf = (slug) => courses.find((c) => c.id === slug)?.title || slug;
@@ -367,6 +375,22 @@ export default function Admin({ isAdmin = false, onBack }) {
               borderRadius: 9, border: "none", cursor: "pointer", background: "#10b981", color: "#fff", fontSize: 13, fontWeight: 700 }}>
               <Download size={15}/> Скачать email
             </button>
+          </div>
+
+          {/* Безопасность */}
+          <div style={{ ...card(), padding: 16, marginTop: 14 }}>
+            <H icon={<Lock size={16} style={{ color: "#6366f1" }}/>}>Сменить пароль</H>
+            <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)", marginBottom: 10 }}>
+              Новый пароль для входа в этот аккаунт (минимум 8 символов). Меняется сразу, без письма.
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <input type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)}
+                placeholder="новый пароль" style={{ ...input, flex: 1, minWidth: 180 }}/>
+              <button onClick={changePass} style={{ padding: "10px 16px", borderRadius: 9, border: "none",
+                cursor: "pointer", background: "#6366f1", color: "#fff", fontSize: 13, fontWeight: 700 }}>
+                Сменить пароль
+              </button>
+            </div>
           </div>
         </>
       )}
