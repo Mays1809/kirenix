@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════
 //  EssayChecker.jsx — проверка сочинения (задание 27) по критериям
-//  К1–К10 ФИПИ 2026. Уходит в Edge Function ai-tutor (mode: "essay").
+//  К1–К10 ФИПИ 2027. Уходит в Edge Function ai-tutor (mode: "essay").
 //  Это «фишка» курса: то, что автопроверка маркетплейсов не умеет.
 // ═══════════════════════════════════════════════════════════════════
 
@@ -85,7 +85,7 @@ export default function EssayChecker({ lessonId, accent = "#e11d48", onClose, fr
           <CheckCircle2 size={18}/>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 14, fontWeight: 700 }}>{free ? "Бесплатная проверка сочинения" : "Проверка сочинения по К1–К10"}</div>
-            <div style={{ fontSize: 10.5, opacity: .9 }}>{free ? "Одна проверка по К1–К10 — бесплатно, без карты" : "Критерии ФИПИ 2026 · максимум 22 балла"}</div>
+            <div style={{ fontSize: 10.5, opacity: .9 }}>{free ? "Одна проверка по К1–К10 — бесплатно, без карты" : "Критерии ФИПИ 2027 · максимум 22 балла"}</div>
           </div>
           {remaining !== null && (
             <span style={{ fontSize: 10, opacity: .9, whiteSpace: "nowrap" }}>ещё {remaining}/день</span>

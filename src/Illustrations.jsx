@@ -25,8 +25,8 @@ export function DotGrid({ color = "#14141b", opacity = 0.05, style = {} }) {
   );
 }
 
-/** Круглая «печать» — знак доверия (напр. «ФИПИ 2026») */
-export function Seal({ top = "ПО КОДИФИКАТОРУ", bottom = "ФИПИ 2026", size = 92, color = "#b88a3e" }) {
+/** Круглая «печать» — знак доверия (напр. «ФИПИ 2027») */
+export function Seal({ top = "ПО КОДИФИКАТОРУ", bottom = "ФИПИ 2027", size = 92, color = "#b88a3e" }) {
   const id = "seal" + bottom.replace(/\W/g, "");
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" className="pf-float" style={{ display: "block" }}>

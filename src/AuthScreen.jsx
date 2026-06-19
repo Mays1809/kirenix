@@ -194,7 +194,7 @@ export default function AuthScreen({ onAuth }) {
           </g>
         </svg>
         <div className="pf-serif text-[26px] mt-3 text-zinc-900 dark:text-zinc-100">Kirenix</div>
-        <div className="text-[13px] text-zinc-500 dark:text-zinc-400 mt-1">Курсы ЕГЭ 2026 — информатика и русский</div>
+        <div className="text-[13px] text-zinc-500 dark:text-zinc-400 mt-1">Курсы ЕГЭ 2027 — информатика и русский</div>
       </div>
 
       <div className="relative z-[1] w-full max-w-[420px] rounded-3xl p-6

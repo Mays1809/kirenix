@@ -459,7 +459,7 @@ export default function CourseStudy({ contentId, user, price, onBack }) {
             Программа курса
           </span>
           <span style={{ display: "block", fontSize: 11.5, color: "var(--color-text-secondary)" }}>
-            Карта всех 27 заданий · изменения ЕГЭ 2026 · методика
+            Карта всех 27 заданий · изменения ЕГЭ 2027 · методика
           </span>
         </span>
         <ChevronRight size={15} style={{ color: "var(--color-text-secondary)" }}/>

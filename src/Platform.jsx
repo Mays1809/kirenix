@@ -33,7 +33,7 @@ import {
    (или если таблица catalog_courses ещё не создана) */
 const FALLBACK_CATALOG = [
   {
-    id:"c3", title:"Информатика ЕГЭ 2026: все 27 заданий",
+    id:"c3", title:"Информатика ЕГЭ 2027: все 27 заданий",
     teacher:"Кирилл Шевелев", teacher_avatar:"КШ", school:"Авторский курс",
     subject:"Информатика", subject_icon:"💻", subject_color:"#3b82f6",
     price:5200, original_price:null,
@@ -41,18 +41,18 @@ const FALLBACK_CATALOG = [
     level:"intermediate", cover_color:"#3b82f6",
     content_id:"informatics",   // ← встроенный полный курс (11 модулей)
     tags:["11 модулей","Разбор всех 27 заданий","Практика с ответами","Python"],
-    short_desc:"Полный текстовый курс: теория, разобранные примеры, практика с ответами, шпаргалки. Машина Тьюринга, задание 22 «на максимум» — по ФИПИ 2026.",
+    short_desc:"Полный текстовый курс: теория, разобранные примеры, практика с ответами, шпаргалки. Машина Тьюринга, задание 22 «на максимум» — по ФИПИ 2027.",
   },
   {
-    id:"c4", title:"Русский язык ЕГЭ 2026: все 27 заданий и сочинение",
+    id:"c4", title:"Русский язык ЕГЭ 2027: все 27 заданий и сочинение",
     teacher:"Кирилл Шевелев", teacher_avatar:"КШ", school:"Авторский курс",
     subject:"Русский язык", subject_icon:"📝", subject_color:"#e11d48",
     price:4000, original_price:5900,
     duration:"60 ч", lessons:35, format:"text",
     level:"intermediate", cover_color:"#e11d48",
     content_id:"russian",   // ← встроенный полный курс (8 модулей)
-    tags:["8 модулей","Все 27 заданий","Сочинение на 22 балла","По ФИПИ 2026"],
-    short_desc:"Полный текстовый курс: теория, разобранные примеры, практика с ответами, шпаргалки. Орфоэпия, паронимы, орфография, пунктуация и сочинение по критериям К1–К10 ФИПИ 2026.",
+    tags:["8 модулей","Все 27 заданий","Сочинение на 22 балла","По ФИПИ 2027"],
+    short_desc:"Полный текстовый курс: теория, разобранные примеры, практика с ответами, шпаргалки. Орфоэпия, паронимы, орфография, пунктуация и сочинение по критериям К1–К10 ФИПИ 2027.",
   },
 ];
 
@@ -291,7 +291,7 @@ const CoursePage = ({ course, onBack, onMessages, onStudy, user, profile }) => {
         <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:16 }}>
           <Badge color="#10b981">Урок 1.1 — бесплатно</Badge>
           <Badge color={course.cover_color}>Доступ навсегда</Badge>
-          <Badge color={course.cover_color}>Проверено по ФИПИ 2026</Badge>
+          <Badge color={course.cover_color}>Проверено по ФИПИ 2027</Badge>
         </div>
 
         <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
@@ -844,7 +844,7 @@ export default function Platform({ user, profile, notifications, onProfileUpdate
               padding:"24px 20px", marginBottom:16, color:"#fff",
             }}>
               <div style={{ fontSize:22, fontWeight:700, marginBottom:6 }}>
-                Информатика ЕГЭ 2026 💻
+                Информатика ЕГЭ 2027 💻
               </div>
               <div style={{ fontSize:13, opacity:.9, marginBottom:16, lineHeight:1.6 }}>
                 Авторский курс Кирилла Шевелева: вся теория, разобранные примеры,
@@ -890,7 +890,7 @@ export default function Platform({ user, profile, notifications, onProfileUpdate
                   ["✍️","Практика с ответами","15–20 задач на урок, чтобы закрепить"],
                   ["📝","Шпаргалка и типичные ошибки","краткая выжимка для повторения перед экзаменом"],
                   ["🐍","Рабочий Python-код","проверяй свои решения программой, как на ЕГЭ"],
-                  ["🧠","Изменения 2026 учтены","Машина Тьюринга (зад. 12), «максимум» в зад. 22 — по ФИПИ"],
+                  ["🧠","Изменения 2027 учтены","Машина Тьюринга (зад. 12), «максимум» в зад. 22 — по ФИПИ"],
                 ].map(([icon,t,d]) => (
                   <div key={t} style={{ display:"flex", gap:10 }}>
                     <span style={{ fontSize:18, flexShrink:0 }}>{icon}</span>
@@ -941,7 +941,7 @@ export default function Platform({ user, profile, notifications, onProfileUpdate
                 ["Сколько действует доступ?","Бессрочно — включая все будущие обновления курса."],
                 ["Что произойдёт после оплаты?","Доступ откроется автоматически примерно за минуту, курс появится в «Моём кабинете». Оплата через ЮKassa."],
                 ["Можно ли вернуть деньги?","Да, по публичной оферте: в течение 14 дней до получения доступа — полностью, после начала обучения — пропорционально непройденным материалам."],
-                ["Курс точно актуален для ЕГЭ 2026?","Да: структура из 27 заданий, Машина Тьюринга в задании 12 и «максимум» в задании 22 — сверено с документами ФИПИ 2026."],
+                ["Курс точно актуален для ЕГЭ 2027?","Да: структура из 27 заданий, Машина Тьюринга в задании 12 и «максимум» в задании 22 — сверено с документами ФИПИ 2027."],
               ].map(([q,a]) => (
                 <details key={q} style={{ borderBottom:"0.5px solid var(--color-border-tertiary)", padding:"8px 0" }}>
                   <summary style={{ fontSize:13, fontWeight:600, cursor:"pointer" }}>{q}</summary>

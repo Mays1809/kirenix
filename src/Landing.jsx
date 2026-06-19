@@ -86,7 +86,7 @@ export default function Landing({ cards, onTryFree, onFreeEssay }) {
         <section className={`${GLASS} rounded-[28px] p-7 sm:p-9 mb-5`}>
           <div className="grid grid-cols-1 md:grid-cols-[1.15fr_0.85fr] gap-6 items-center">
             <div className="pf-fade">
-              <div className={`${EYEBROW} text-amber-700/90 mb-3`}>Авторская подготовка · ЕГЭ 2026</div>
+              <div className={`${EYEBROW} text-amber-700/90 mb-3`}>Авторская подготовка · ЕГЭ 2027</div>
               <h1 className="pf-serif text-[40px] leading-[1.1] tracking-tight text-zinc-900 dark:text-zinc-50">
                 Высокий балл на ЕГЭ<br/>
                 <span className="bg-gradient-to-r from-[#e11d48] via-[#f97316] to-[#f59e0b] bg-clip-text text-transparent">
@@ -113,7 +113,7 @@ export default function Landing({ cards, onTryFree, onFreeEssay }) {
               </div>
               <div className="mt-4 flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
                 <ShieldCheck size={15} className="text-emerald-500"/>
-                По кодификатору ФИПИ 2026 · доступ навсегда · оплата через ЮKassa
+                По кодификатору ФИПИ 2027 · доступ навсегда · оплата через ЮKassa
               </div>
             </div>
             <div className="pf-float relative">
@@ -125,7 +125,7 @@ export default function Landing({ cards, onTryFree, onFreeEssay }) {
         {/* ───────── TRUST BAR ───────── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {[
-            [<ShieldCheck size={18}/>, "По ФИПИ 2026", "кодификатор и демоверсия"],
+            [<ShieldCheck size={18}/>, "По ФИПИ 2027", "кодификатор и демоверсия"],
             [<FileCheck size={18}/>, "Проверка сочинения", "ИИ + личный разбор автора"],
             [<Clock size={18}/>, "Доступ навсегда", "учись в своём темпе"],
             [<GraduationCap size={18}/>, "Урок бесплатно", "оцени формат до покупки"],
