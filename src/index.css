@@ -192,3 +192,10 @@ code {
   .pf-glass-soft { background: rgba(28,30,42,.42); border-color: rgba(255,255,255,.08); }
   .pf-mesh { opacity: .75; }
 }
+
+/* ── Доступность: уважаем prefers-reduced-motion (отключаем декоративную анимацию) ── */
+@media (prefers-reduced-motion: reduce) {
+  .pf-fade, .pf-float, .pf-blob { animation: none !important; }
+  .pf-lift:hover, .pf-hover:hover, .pf-cta:hover { transform: none !important; }
+  html { scroll-behavior: auto !important; }
+}
