@@ -9,11 +9,12 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle,
-  ChevronDown, ChevronRight, FileText, Loader2, Lock, Map, ShoppingCart,
+  ChevronDown, ChevronRight, Compass, FileText, Loader2, Lock, Map, ShoppingCart,
 } from "lucide-react";
 import CourseMarkdown from "./CourseMarkdown";
 import { supabase } from "./supabase";   // прогресс уроков пишется в БД
 import AiTutor from "./AiTutor";
+import Diagnostic from "./Diagnostic";
 import EssayChecker from "./EssayChecker";
 import { Bot } from "lucide-react";
 import { INFORMATICS_COURSE } from "./courses/informatics";
@@ -83,6 +84,20 @@ export default function CourseStudy({ contentId, user, price, onBack }) {
     catch { return {}; }
   };
   const [done, setDone] = useState(readLocal);
+
+  /* ── Диагностика: карта «знаешь / подтянуть» по модулям ── */
+  const [mastery, setMastery] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(`kirenix_diag_${contentId}`)) || {}; }
+    catch { return {}; }
+  });
+  useEffect(() => {
+    if (!user) return;
+    let on = true;
+    supabase.from("diagnostic_results").select("mastery")
+      .eq("course_slug", contentId).maybeSingle()
+      .then(({ data }) => { if (on && data?.mastery) setMastery(data.mastery); });
+    return () => { on = false; };
+  }, [user?.id, contentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!user) return;
@@ -223,6 +238,24 @@ export default function CourseStudy({ contentId, user, price, onBack }) {
   const allCount = flat.length;
   const doneCount = flat.filter((l) => done[l.id]).length;
   const pct = allCount ? Math.round((doneCount / allCount) * 100) : 0;
+
+  const weakNums = Object.keys(mastery).filter((k) => mastery[k] === "weak").map(Number).sort((a, b) => a - b);
+  const recommendStart = weakNums[0] || null;
+  const diagnosed = Object.keys(mastery).length > 0;
+
+  /* ════════════ РЕЖИМ ДИАГНОСТИКИ ════════════ */
+  if (view === "diagnostic") {
+    return (
+      <Diagnostic
+        contentId={contentId}
+        modules={index.modules}
+        user={user}
+        accent={accent}
+        onDone={(m) => setMastery(m)}
+        onClose={() => setView(null)}
+      />
+    );
+  }
 
   /* ════════════ РЕЖИМ УРОКА / ПРОГРАММЫ ════════════ */
   if (lesson || view === "program") {
@@ -444,6 +477,29 @@ export default function CourseStudy({ contentId, user, price, onBack }) {
         )}
       </div>
 
+      {/* Диагностика → индивидуальный путь */}
+      <button onClick={() => { setView("diagnostic"); window.scrollTo({ top: 0 }); }} style={{
+        ...card(), width: "100%", display: "flex", alignItems: "center", gap: 10,
+        padding: "13px 16px", cursor: "pointer", marginBottom: 10, textAlign: "left",
+        background: `linear-gradient(135deg, ${accent}10, transparent)`,
+      }}>
+        <span style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+          background: `${accent}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Compass size={16} style={{ color: accent }}/>
+        </span>
+        <span style={{ flex: 1 }}>
+          <span style={{ display: "block", fontSize: 13.5, fontWeight: 600 }}>
+            {diagnosed ? "Пройти диагностику заново" : "Пройти диагностику уровня"}
+          </span>
+          <span style={{ display: "block", fontSize: 11.5, color: "var(--color-text-secondary)" }}>
+            {diagnosed && recommendStart
+              ? `Твой план готов · начни с модуля ${recommendStart}`
+              : "Узнай свой уровень — и пропусти то, что уже знаешь"}
+          </span>
+        </span>
+        <ChevronRight size={15} style={{ color: "var(--color-text-secondary)" }}/>
+      </button>
+
       {/* Программа курса */}
       <button onClick={() => { setView("program"); window.scrollTo({ top: 0 }); }} style={{
         ...card(), width: "100%", display: "flex", alignItems: "center", gap: 10,
@@ -492,6 +548,16 @@ export default function CourseStudy({ contentId, user, price, onBack }) {
                   {access ? ` · пройдено ${mDone}/${m.lessons.length}` : ""}
                 </span>
               </span>
+              {mastery[m.num] === "known" && (
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#10b981",
+                  background: "#10b98115", padding: "2px 8px", borderRadius: 99,
+                  whiteSpace: "nowrap", flexShrink: 0 }}>Знаешь</span>
+              )}
+              {mastery[m.num] === "weak" && (
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#f59e0b",
+                  background: "#f59e0b18", padding: "2px 8px", borderRadius: 99,
+                  whiteSpace: "nowrap", flexShrink: 0 }}>Подтянуть</span>
+              )}
               {open
                 ? <ChevronDown size={15} style={{ color: "var(--color-text-secondary)" }}/>
                 : <ChevronRight size={15} style={{ color: "var(--color-text-secondary)" }}/>}
