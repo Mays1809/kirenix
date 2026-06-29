@@ -1,0 +1,29 @@
+name: Supabase keep-alive
+
+# Бесплатный «пинг», чтобы проект Supabase не засыпал на free-плане:
+# он уходит в паузу после 7 дней без активности. Дёргаем REST дважды в неделю —
+# это реальное обращение к базе (читаем 1 строку каталога), значит активность есть.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1,4"   # Пн и Чт в 06:00 UTC — максимальный разрыв ~3–4 дня
+  workflow_dispatch:          # можно запустить вручную из вкладки Actions
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST
+        run: |
+          KEY="sb_publishable_LixS-P-ezh8iceSn5lSrfw_baXs94rO"
+          URL="https://bgidvsfjnpitiosiwjar.supabase.co/rest/v1/catalog_courses?select=slug&limit=1"
+          for i in 1 2 3; do
+            code=$(curl -s -o /tmp/out.txt -w "%{http_code}" \
+              -H "apikey: $KEY" -H "Authorization: Bearer $KEY" "$URL")
+            echo "Попытка $i: HTTP $code"
+            if [ "$code" = "200" ]; then
+              echo "OK — активность в проекте создана"; cat /tmp/out.txt; exit 0
+            fi
+            sleep 10
+          done
+          echo "Пинг не прошёл (проверь ключ/URL):"; cat /tmp/out.txt; exit 1
