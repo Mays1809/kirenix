@@ -9,12 +9,13 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle,
-  ChevronDown, ChevronRight, Compass, FileText, Loader2, Lock, Map, ShoppingCart,
+  ChevronDown, ChevronRight, Compass, Dumbbell, FileText, Loader2, Lock, Map, ShoppingCart,
 } from "lucide-react";
 import CourseMarkdown from "./CourseMarkdown";
 import { supabase } from "./supabase";   // прогресс уроков пишется в БД
 import AiTutor from "./AiTutor";
 import Diagnostic from "./Diagnostic";
+import Practice from "./Practice";
 import EssayChecker from "./EssayChecker";
 import { Bot } from "lucide-react";
 import { INFORMATICS_COURSE } from "./courses/informatics";
@@ -252,6 +253,20 @@ export default function CourseStudy({ contentId, user, price, onBack }) {
         user={user}
         accent={accent}
         onDone={(m) => setMastery(m)}
+        onClose={() => setView(null)}
+      />
+    );
+  }
+
+  /* ════════════ РЕЖИМ ПРАКТИКИ ════════════ */
+  if (view === "practice") {
+    return (
+      <Practice
+        contentId={contentId}
+        modules={index.modules}
+        user={user}
+        mastery={mastery}
+        accent={accent}
         onClose={() => setView(null)}
       />
     );
@@ -495,6 +510,24 @@ export default function CourseStudy({ contentId, user, price, onBack }) {
             {diagnosed && recommendStart
               ? `Твой план готов · начни с модуля ${recommendStart}`
               : "Узнай свой уровень — и пропусти то, что уже знаешь"}
+          </span>
+        </span>
+        <ChevronRight size={15} style={{ color: "var(--color-text-secondary)" }}/>
+      </button>
+
+      {/* Практика → закрепление с проверкой */}
+      <button onClick={() => { setView("practice"); window.scrollTo({ top: 0 }); }} style={{
+        ...card(), width: "100%", display: "flex", alignItems: "center", gap: 10,
+        padding: "13px 16px", cursor: "pointer", marginBottom: 10, textAlign: "left",
+      }}>
+        <span style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+          background: `${accent}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Dumbbell size={16} style={{ color: accent }}/>
+        </span>
+        <span style={{ flex: 1 }}>
+          <span style={{ display: "block", fontSize: 13.5, fontWeight: 600 }}>Практика с проверкой</span>
+          <span style={{ display: "block", fontSize: 11.5, color: "var(--color-text-secondary)" }}>
+            Задания с мгновенным ✓/✗, подсказки, повтор ошибок
           </span>
         </span>
         <ChevronRight size={15} style={{ color: "var(--color-text-secondary)" }}/>
