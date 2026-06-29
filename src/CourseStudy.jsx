@@ -9,13 +9,14 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft, ArrowRight, BookOpen, Check, CheckCircle,
-  ChevronDown, ChevronRight, Compass, Dumbbell, FileText, Loader2, Lock, Map, ShoppingCart,
+  ChevronDown, ChevronRight, Compass, Dumbbell, Film, FileText, Loader2, Lock, Map, ShoppingCart,
 } from "lucide-react";
 import CourseMarkdown from "./CourseMarkdown";
 import { supabase } from "./supabase";   // прогресс уроков пишется в БД
 import AiTutor from "./AiTutor";
 import Diagnostic from "./Diagnostic";
 import Practice from "./Practice";
+import Explainer from "./Explainer";
 import EssayChecker from "./EssayChecker";
 import { Bot } from "lucide-react";
 import { INFORMATICS_COURSE } from "./courses/informatics";
@@ -266,6 +267,18 @@ export default function CourseStudy({ contentId, user, price, onBack }) {
         modules={index.modules}
         user={user}
         mastery={mastery}
+        accent={accent}
+        onClose={() => setView(null)}
+      />
+    );
+  }
+
+  /* ════════════ РЕЖИМ ВИДЕО-ОБЗОРОВ ════════════ */
+  if (view === "explainers") {
+    return (
+      <Explainer
+        contentId={contentId}
+        modules={index.modules}
         accent={accent}
         onClose={() => setView(null)}
       />
@@ -528,6 +541,24 @@ export default function CourseStudy({ contentId, user, price, onBack }) {
           <span style={{ display: "block", fontSize: 13.5, fontWeight: 600 }}>Практика с проверкой</span>
           <span style={{ display: "block", fontSize: 11.5, color: "var(--color-text-secondary)" }}>
             Задания с мгновенным ✓/✗, подсказки, повтор ошибок
+          </span>
+        </span>
+        <ChevronRight size={15} style={{ color: "var(--color-text-secondary)" }}/>
+      </button>
+
+      {/* Видео-обзоры темы (ИИ-сценарий + озвучка) */}
+      <button onClick={() => { setView("explainers"); window.scrollTo({ top: 0 }); }} style={{
+        ...card(), width: "100%", display: "flex", alignItems: "center", gap: 10,
+        padding: "13px 16px", cursor: "pointer", marginBottom: 10, textAlign: "left",
+      }}>
+        <span style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+          background: `${accent}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Film size={16} style={{ color: accent }}/>
+        </span>
+        <span style={{ flex: 1 }}>
+          <span style={{ display: "block", fontSize: 13.5, fontWeight: 600 }}>Видео-обзоры тем</span>
+          <span style={{ display: "block", fontSize: 11.5, color: "var(--color-text-secondary)" }}>
+            Короткие разборы с озвучкой — тему за пару минут
           </span>
         </span>
         <ChevronRight size={15} style={{ color: "var(--color-text-secondary)" }}/>
