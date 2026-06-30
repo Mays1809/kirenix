@@ -13,11 +13,12 @@
 
 import { createClient } from "@supabase/supabase-js";
 
-// Браузер ходит НАПРЯМУЮ в Supabase. Прокси на Deno Deploy отключён: он упёрся
-// в бесплатный лимит «Memory Time» и был приостановлен (из-за этого падал вход).
-// fetchWithRetry ниже сглаживает редкие обрывы РКН. Если в РФ снова начнётся
-// устойчивая блокировка — см. SETUP_PROXY.md (варианты бесплатного прокси).
-const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL  || "https://bgidvsfjnpitiosiwjar.supabase.co";
+// Браузер ходит в Supabase ЧЕРЕЗ прокси на Yandex API Gateway (РФ, без VPN):
+// браузер → Yandex-шлюз (РФ) → Supabase. Прямой адрес Supabase за Cloudflare
+// в РФ режется РКН, поэтому в браузере используем прокси.
+// Прямой адрес (для edge-функций и вебхука, серверная сторона):
+//   https://bgidvsfjnpitiosiwjar.supabase.co
+const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL  || "https://d5dpnmsib1h446gltr4d.wnq2w1o5.apigw.yandexcloud.net";
 // Publishable-ключ (новая система ключей Supabase). Публичный — безопасен
 // в браузере, доступ к данным ограничивает RLS.
 const SUPABASE_KEY  = import.meta.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_LixS-P-ezh8iceSn5lSrfw_baXs94rO";
