@@ -26,7 +26,7 @@ jobs:
       - name: SPA fallback (404 = index.html)
         run: cp dist/index.html dist/404.html
       - name: Upload pages artifact
-        uses: gitverse/upload-pages-artifact@v1.0.0
+        uses: https://gitverse.ru/actions/upload-pages-artifact@v1.0.0
         with:
           path: dist
 
@@ -34,4 +34,4 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: gitverse/deploy-pages@v1.0.0
+      - uses: https://gitverse.ru/actions/deploy-pages@v1.0.0
