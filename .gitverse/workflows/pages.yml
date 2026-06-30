@@ -1,0 +1,37 @@
+name: Publish to GitVerse Pages
+
+# Сборка и публикация сайта на GitVerse Pages (российский хостинг, работает в РФ
+# без VPN, бесплатно). Vite собирается в dist, статика публикуется официальными
+# экшенами GitVerse. Источник в Настройки → Страницы должен быть = «Воркфлоу».
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install
+        run: npm ci
+      - name: Build
+        run: npm run build
+      # SPA-фолбэк: прямой путь (/oferta, /access, …) отдаёт index.html
+      - name: SPA fallback (404 = index.html)
+        run: cp dist/index.html dist/404.html
+      - name: Upload pages artifact
+        uses: gitverse/upload-pages-artifact@v1.0.0
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: gitverse/deploy-pages@v1.0.0
